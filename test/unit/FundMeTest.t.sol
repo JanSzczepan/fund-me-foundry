@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import {Test, console} from '../lib/forge-std/src/Test.sol';
-import {FundMe} from '../src/FundMe.sol';
-import {DeployFundMe} from '../script/DeployFundMe.s.sol';
+import {Test, console} from '../../lib/forge-std/src/Test.sol';
+import {FundMe} from '../../src/FundMe.sol';
+import {DeployFundMe} from '../../script/DeployFundMe.s.sol';
+import {HelperConfig} from '../../script/HelperConfig.s.sol';
 
 contract FundMeTest is Test {
    FundMe public fundMe;
+   HelperConfig public helperConfig;
 
    uint256 public constant STARTING_BALANCE = 10 ether;
    uint256 public constant SEND_VALUE = 0.1 ether;
@@ -23,8 +25,15 @@ contract FundMeTest is Test {
 
    function setUp() external {
       DeployFundMe deployFundMe = new DeployFundMe();
-      fundMe = deployFundMe.run();
+      (fundMe, helperConfig) = deployFundMe.run();
       vm.deal(USER, STARTING_BALANCE);
+   }
+
+   function testPriceFeedSetCorrectly() public {
+      address priceFeed = address(fundMe.getPriceFeed());
+      address expectedPriceFeed = helperConfig.activeNetworkConfig();
+
+      assertEq(priceFeed, expectedPriceFeed);
    }
 
    function testMinimumDollarAmount() public {
