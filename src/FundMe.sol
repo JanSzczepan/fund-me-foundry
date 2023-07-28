@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.18;
 
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import {PriceConverter} from "./PriceConverter.sol";
+import {AggregatorV3Interface} from '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
+import {PriceConverter} from './PriceConverter.sol';
 
 error FundMe__OnlyOwner();
 error FundMe__TransferFailed();
@@ -21,9 +21,7 @@ contract FundMe {
 
    constructor(address _aggregatorV3InterfaceAddress) {
       i_owner = msg.sender;
-      i_aggregatorV3Interface = AggregatorV3Interface(
-         _aggregatorV3InterfaceAddress
-      );
+      i_aggregatorV3Interface = AggregatorV3Interface(_aggregatorV3InterfaceAddress);
    }
 
    modifier onlyOwner() {
@@ -48,15 +46,15 @@ contract FundMe {
    }
 
    function withdraw() public onlyOwner {
-      for (uint256 i = 0; i < s_funders.length; i++) {
+      uint256 fundersLength = s_funders.length;
+
+      for (uint256 i = 0; i < fundersLength; i++) {
          s_addressToAmountFunded[s_funders[i]] = 0;
       }
 
       s_funders = new address[](0);
 
-      (bool isSuccess, ) = payable(i_owner).call{value: address(this).balance}(
-         ""
-      );
+      (bool isSuccess, ) = payable(i_owner).call{value: address(this).balance}('');
 
       if (!isSuccess) {
          revert FundMe__TransferFailed();
@@ -71,21 +69,23 @@ contract FundMe {
       fund();
    }
 
-   function getFunder(uint256 _index) public view returns (address) {
+   function getFunder(uint256 _index) external view returns (address) {
       return s_funders[_index];
    }
 
-   function getFunderAmountFunded(
-      address _funderAddress
-   ) public view returns (uint256) {
+   function getFunderAmountFunded(address _funderAddress) external view returns (uint256) {
       return s_addressToAmountFunded[_funderAddress];
    }
 
-   function getOwner() public view returns (address) {
+   function getOwner() external view returns (address) {
       return i_owner;
    }
 
-   function getMinimumUsd() public pure returns (uint256) {
+   function getPriceFeed() external view returns (AggregatorV3Interface) {
+      return i_aggregatorV3Interface;
+   }
+
+   function getMinimumUsd() external pure returns (uint256) {
       return MINIMUM_USD;
    }
 }
